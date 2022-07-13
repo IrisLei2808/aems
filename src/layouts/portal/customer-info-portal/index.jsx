@@ -22,7 +22,7 @@ export default function CustomerInfoPortal() {
         dispatch(triggerLoading(true));
         
         await axios.get(apiUrl).then((res) => {
-            console.log(res.data);
+            console.log('token', res.data);
             let response = res.data;
             let data = response.resData;
             setEmbedToken({

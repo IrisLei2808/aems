@@ -33,6 +33,7 @@ const RemoteControlAction = {
 export default function DeviceDetail() {
   let { id } = useParams();
   const [DeviceDetail, setDeviceDetail] = useState(() => deviceDetailModel);
+  const [download, setDownload] = useState(false);
 
   const dispatch = useDispatch();
 
@@ -97,6 +98,33 @@ export default function DeviceDetail() {
     getDeviceDetail();
   }, [])
 
+  useEffect(() => {
+    async function downloadApi() {
+      try {
+        // It doesn't matter whether this api responds with the Content-Disposition header or not
+        const response = await axios.get(
+          `${BaseApiUrlV1}/device/export-log?DeviceCode=${DeviceDetail.code}`,
+          {
+            responseType: "blob", // this is important!
+           // headers: { Authorization: localStorage.getItem("token") },
+          }
+        );
+        const url = window.URL.createObjectURL(new Blob([response.data])); // you can mention a type if you wish
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "dummy.xlsx"); //this is the name with which the file will be downloaded
+        link.click();
+        // no need to append link as child to body.
+        setTimeout(() => window.URL.revokeObjectURL(url), 0); // this is important too, otherwise we will be unnecessarily spiking memory!
+        setDownload(false);
+      } catch (e) {} //error handling }
+    }
+
+    if (download) {
+      downloadApi();
+    }
+  }, [download]);
+
   return (
     <>
       <ScreenHeader />
@@ -107,7 +135,7 @@ export default function DeviceDetail() {
           <Button variant="contained" sx={{ml: 2}} onClick={() => RemoteControl(DeviceDetail.code, 'Acc Off', RemoteControlAction.AccOff)}>Stop Sending</Button>
         </div>
         <div>
-        <Button variant="outlined" startIcon={<DownloadIcon />}>
+        <Button variant="outlined" startIcon={<DownloadIcon />} onClick={() => setDownload(true)}>
         Download Excel
       </Button>
         </div>
